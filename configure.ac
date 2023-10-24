@@ -801,8 +801,8 @@ then
   AC_MSG_RESULT([$SDKROOT])
 
 	# Compiler selection on MacOSX is more complicated than
-	# AC_PROG_CC can handle, see Mac/README for more
-	# information
+	# AC_PROG_CC can handle. See Mac/README.rst for more
+	# information on macOS builds.
 	if test -z "${CC}"
 	then
 		found_gcc=
@@ -824,23 +824,12 @@ then
 		done
 		IFS=$as_save_IFS
 
-		if test -n "$found_gcc" -a -n "$found_clang"
-		then
-			if test -n "`"$found_gcc" --version | grep llvm-gcc`"
-			then
-				AC_MSG_NOTICE([Detected llvm-gcc, falling back to clang])
-				CC="$found_clang"
-				CXX="$found_clang++"
-			fi
-
-
-		elif test -z "$found_gcc" -a -n "$found_clang"
-		then
-			AC_MSG_NOTICE([No GCC found, use CLANG])
-			CC="$found_clang"
-			CXX="$found_clang++"
-
-		elif test -z "$found_gcc" -a -z "$found_clang"
+    # Always prefer clang when in PATH
+    if test -n "$found_clang"
+    then
+      CC="clang"
+      CXX="clang++"
+		elif test -z "$found_gcc"
 		then
 			found_clang=`/usr/bin/xcrun -find clang 2>/dev/null`
 			if test -n "${found_clang}"
@@ -2352,21 +2341,6 @@ yes)
     Darwin*)
         # -Wno-long-double, -no-cpp-precomp, and -mno-fused-madd
         # used to be here, but non-Apple gcc doesn't accept them.
-        if test "${CC}" = gcc
-        then
-            AC_MSG_CHECKING([which compiler should be used])
-            case "${UNIVERSALSDK}" in
-            */MacOSX10.4u.sdk)
-                # Build using 10.4 SDK, force usage of gcc when the
-                # compiler is gcc, otherwise the user will get very
-                # confusing error messages when building on OSX 10.6
-                CC=gcc-4.0
-                CPP=cpp-4.0
-                ;;
-            esac
-            AC_MSG_RESULT([$CC])
-        fi
-
         LIPO_INTEL64_FLAGS=""
         if test "${enable_universalsdk}"
         then

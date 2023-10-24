@@ -4567,14 +4567,29 @@ printf "%s\n" "$SDKROOT" >&6; }
 
 		if test -n "$found_gcc" -a -n "$found_clang"
 		then
-			if test -n "`"$found_gcc" --version | grep llvm-gcc`"
-			then
-				{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: Detected llvm-gcc, falling back to clang" >&5
-printf "%s\n" "$as_me: Detected llvm-gcc, falling back to clang" >&6;}
-				CC="$found_clang"
-				CXX="$found_clang++"
-			fi
+      found_gcc_version="`"$found_gcc" --version`"
+      case "$found_gcc_version" in #(
+  *clang*) :
 
+          # gh-110577: if gcc is an alias to clang, prefer "clang" so that we
+          # can use clang-specific configuration.
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: gcc is clang, using clang" >&5
+printf "%s\n" "$as_me: gcc is clang, using clang" >&6;}
+          CC="$found_clang"
+          CXX="$found_clang++"
+         ;; #(
+  *llvm-gcc*) :
+
+          # bpo-13590: avoid Apple llvm-gcc
+          { printf "%s\n" "$as_me:${as_lineno-$LINENO}: Detected llvm-gcc, falling back to clang" >&5
+printf "%s\n" "$as_me: Detected llvm-gcc, falling back to clang" >&6;}
+          CC="$found_clang"
+          CXX="$found_clang++"
+
+       ;; #(
+  *) :
+     ;;
+esac
 
 		elif test -z "$found_gcc" -a -n "$found_clang"
 		then
